@@ -131,19 +131,20 @@ public class BlockInfusedGrain extends BlockCrops implements ITTinkererBlock {
             ItemStack seedStack = new ItemStack(ThaumicTinkerer.registry.getFirstItemFromClass(ItemInfusedSeeds.class));
             ItemInfusedSeeds.setAspect(seedStack, getAspectDropped(world, x, y, z, metadata));
             ItemInfusedSeeds.setAspectTendencies(seedStack, ((TileInfusedGrain) world.getTileEntity(x, y, z)).primalTendencies);
-            while (rand.nextInt(10000) < Math.pow(getPrimalTendencyCount(world, x, y, z, Aspect.ENTROPY), 2)) {
+            while (rand.nextInt(10000) < Math.pow(getPrimalTendencyCount(world, x, y, z, Aspect.ENTROPY), 2) && seedStack.stackSize < 64) {
                 seedStack.stackSize++;
             }
             ret.add(seedStack);
             fertilizeSoil(world, x, y, z, metadata);
         }
         if (metadata >= 7) {
+			int i = 75;
             do {
                 ItemStack retItem=AspectCropLootManager.getLootForAspect(getAspect(world, x, y, z));
                 if(retItem!=null)
                     ret.add(retItem);
 
-            } while (world.rand.nextInt(75) < getPrimalTendencyCount(world, x, y, z, Aspect.ORDER));
+            } while (world.rand.nextInt(i++) < getPrimalTendencyCount(world, x, y, z, Aspect.ORDER));
         }
         return ret;
     }
@@ -157,17 +158,24 @@ public class BlockInfusedGrain extends BlockCrops implements ITTinkererBlock {
             do {
                 if (world.getTileEntity(x, y - 1, z) instanceof TileInfusedFarmland) {
                     Aspect currentAspect = getAspect(world, x, y, z);
-                    ((TileInfusedFarmland) world.getTileEntity(x, y - 1, z)).aspectList.add(currentAspect, 1);
-                    ((TileInfusedFarmland) world.getTileEntity(x, y - 1, z)).reduceSaturatedAspects();
+					TileInfusedFarmland te = (TileInfusedFarmland)world.getTileEntity(x, y - 1, z);
+                    te.aspectList.add(currentAspect, 1);
+                    te.reduceSaturatedAspects();
                     world.markBlockForUpdate(x, y - 1, z);
+					if (te.aspectList.getAmount(currentAspect) >= 20) {
+						break;
+					}
                 }
+				else {
+					break;
+				}
             } while (world.rand.nextInt(55) < getPrimalTendencyCount(world, x, y, z, Aspect.EARTH));
         }
     }
 
 
     public void updateTick(World world, int x, int y, int z, Random rand) {
-        //Prevent normal growth from occuring
+        //Prevent normal growth from occurring
         //Growth takes place in the tile entity
         checkAndDropBlock(world, x, y, z);
     }
@@ -179,9 +187,10 @@ public class BlockInfusedGrain extends BlockCrops implements ITTinkererBlock {
                 AspectList farmlandAspectList = ((TileInfusedFarmland) world.getTileEntity(x, y - 1, z)).aspectList;
                 for (Aspect aspect : farmlandAspectList.getAspects()) {
                     Random rand = new Random();
+					Aspect newAspect = ResearchManager.getCombinationResult(aspect, currentAspect);
                     if (rand.nextInt(BREEDING_CHANCE) < (getPrimalTendencyCount(world, x, y, z, Aspect.FIRE) + 1) * farmlandAspectList.getAmount(aspect) * farmlandAspectList.getAmount(aspect)) {
-                        if (ResearchManager.getCombinationResult(aspect, currentAspect) != null) {
-                            return ResearchManager.getCombinationResult(aspect, currentAspect);
+                        if (newAspect != null && AspectCropLootManager.getLootForAspect(newAspect) != null) {
+							return newAspect;
                         }
                     }
                 }
