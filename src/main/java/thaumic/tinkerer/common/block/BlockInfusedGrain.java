@@ -117,50 +117,51 @@ public class BlockInfusedGrain extends BlockCrops implements ITTinkererBlock {
     }
   }
 
-  @Override
-  public void breakBlock(World world, int x, int y, int z, Block block,
-                         int metadata) {
+    @Override
+    public void breakBlock(World world, int x, int y, int z, Block block, int metadata) {
+        if(world==null || !(world.getTileEntity(x, y, z) instanceof TileInfusedGrain))
+            return;
+		ArrayList<ItemStack> ret = new ArrayList<ItemStack>();
+        Random rand = new Random();
+		do
+        {
+            ItemStack seedStack = new ItemStack(ThaumicTinkerer.registry.getFirstItemFromClass(ItemInfusedSeeds.class));
+            ItemInfusedSeeds.setAspect(seedStack, getAspectDropped(world, x, y, z, metadata));
+            ItemInfusedSeeds.setAspectTendencies(seedStack, ((TileInfusedGrain) world.getTileEntity(x, y, z)).primalTendencies);
+            while (rand.nextInt(10000) < Math.pow(getPrimalTendencyCount(world, x, y, z, Aspect.ENTROPY), 2) && seedStack.stackSize < 64) {
+                seedStack.stackSize++;
+            }
+            ret.add(seedStack);
+            fertilizeSoil(world, x, y, z, metadata);
+        } while(false);
+        if (metadata >= 7) {
+			int i = 75;
+            do {
+                ItemStack retItem=AspectCropLootManager.getLootForAspect(getAspect(world, x, y, z));
+                if(retItem!=null)
+                    ret.add(retItem);
 
-    super.breakBlock(world, x, y, z, block, metadata);
-  }
+            } while (world.rand.nextInt(i++) < getPrimalTendencyCount(world, x, y, z, Aspect.ORDER));
+        }
+		
+        for (ItemStack item : ret) {
+            float f = 0.7F;
+            double d0 = (double) (rand.nextFloat() * f) + (double) (1.0F - f) * 0.5D;
+            double d1 = (double) (rand.nextFloat() * f) + (double) (1.0F - f) * 0.5D;
+            double d2 = (double) (rand.nextFloat() * f) + (double) (1.0F - f) * 0.5D;
+            EntityItem entityitem = new EntityItem(world, (double) x + d0, (double) y + d1, (double) z + d2, item);
+            entityitem.delayBeforeCanPickup = 10;
+            world.spawnEntityInWorld(entityitem);
+        }
 
-  @Override
-  public ArrayList<ItemStack> getDrops(World world, int x, int y, int z,
-                                       int metadata, int fortune) {
-    ArrayList<ItemStack> ret = new ArrayList<ItemStack>();
-    if (world == null)
-      return ret;
-    Random rand = new Random();
-    int count = 1;
-    for (int i = 0; i < count; i++) {
-      ItemStack seedStack =
-          new ItemStack(ThaumicTinkerer.registry.getFirstItemFromClass(
-              ItemInfusedSeeds.class));
-      ItemInfusedSeeds.setAspect(seedStack,
-                                 getAspectDropped(world, x, y, z, metadata));
-      ItemInfusedSeeds.setAspectTendencies(
-          seedStack,
-          ((TileInfusedGrain)world.getTileEntity(x, y, z)).primalTendencies);
-      while (
-          rand.nextInt(10000) <
-          Math.pow(getPrimalTendencyCount(world, x, y, z, Aspect.ENTROPY), 2)) {
-        seedStack.stackSize++;
-      }
-      ret.add(seedStack);
-      fertilizeSoil(world, x, y, z, metadata);
+        super.breakBlock(world, x, y, z, block, metadata);
     }
-    if (metadata >= 7) {
-      do {
-        ItemStack retItem =
-            AspectCropLootManager.getLootForAspect(getAspect(world, x, y, z));
-        if (retItem != null)
-          ret.add(retItem);
 
-      } while (world.rand.nextInt(75) <
-               getPrimalTendencyCount(world, x, y, z, Aspect.ORDER));
+    @Override
+    public ArrayList<ItemStack> getDrops(World world, int x, int y, int z, int metadata, int fortune) {
+        ArrayList<ItemStack> ret = new ArrayList<ItemStack>();
+        return ret;
     }
-    return ret;
-  }
 
   public int getPrimalTendencyCount(World world, int x, int y, int z,
                                     Aspect aspect) {
