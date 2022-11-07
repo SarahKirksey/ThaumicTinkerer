@@ -114,20 +114,19 @@ public class BlockInfusedGrain extends BlockCrops implements ITTinkererBlock {
     }
 
     @Override
-    public void breakBlock(World world, int x, int y, int z, Block block, int metadata) {
-
-        super.breakBlock(world, x, y, z, block, metadata);
-
+    public ArrayList<ItemStack> getDrops(World world, int x, int y, int z, int metadata, int fortune) {
+        ArrayList<ItemStack> ret = new ArrayList<ItemStack>();
+        return ret;
     }
 
     @Override
-    public ArrayList<ItemStack> getDrops(World world, int x, int y, int z, int metadata, int fortune) {
-        ArrayList<ItemStack> ret = new ArrayList<ItemStack>();
-        if(world==null)
-            return ret;
+    public void breakBlock(World world, int x, int y, int z, Block block, int metadata) {
+        if(world==null || !(world.getTileEntity(x, y, z) instanceof TileInfusedGrain))
+            return;
+		ArrayList<ItemStack> ret = new ArrayList<ItemStack>();
         Random rand = new Random();
-        int count = 1;
-        for (int i = 0; i < count; i++) {
+		do
+        {
             ItemStack seedStack = new ItemStack(ThaumicTinkerer.registry.getFirstItemFromClass(ItemInfusedSeeds.class));
             ItemInfusedSeeds.setAspect(seedStack, getAspectDropped(world, x, y, z, metadata));
             ItemInfusedSeeds.setAspectTendencies(seedStack, ((TileInfusedGrain) world.getTileEntity(x, y, z)).primalTendencies);
@@ -136,7 +135,7 @@ public class BlockInfusedGrain extends BlockCrops implements ITTinkererBlock {
             }
             ret.add(seedStack);
             fertilizeSoil(world, x, y, z, metadata);
-        }
+        } while(false);
         if (metadata >= 7) {
 			int i = 75;
             do {
@@ -146,7 +145,18 @@ public class BlockInfusedGrain extends BlockCrops implements ITTinkererBlock {
 
             } while (world.rand.nextInt(i++) < getPrimalTendencyCount(world, x, y, z, Aspect.ORDER));
         }
-        return ret;
+		
+        for (ItemStack item : ret) {
+            float f = 0.7F;
+            double d0 = (double) (rand.nextFloat() * f) + (double) (1.0F - f) * 0.5D;
+            double d1 = (double) (rand.nextFloat() * f) + (double) (1.0F - f) * 0.5D;
+            double d2 = (double) (rand.nextFloat() * f) + (double) (1.0F - f) * 0.5D;
+            EntityItem entityitem = new EntityItem(world, (double) x + d0, (double) y + d1, (double) z + d2, item);
+            entityitem.delayBeforeCanPickup = 10;
+            world.spawnEntityInWorld(entityitem);
+        }
+
+        super.breakBlock(world, x, y, z, block, metadata);
     }
 
     public int getPrimalTendencyCount(World world, int x, int y, int z, Aspect aspect) {
