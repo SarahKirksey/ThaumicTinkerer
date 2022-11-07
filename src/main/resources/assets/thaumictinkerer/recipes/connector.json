@@ -10,13 +10,13 @@
       "type": "forge:ore_dict",
       "ore": "ingotIron"
     },
-    "W":
-    {
+    "W": {
       "type": "forge:ore_dict",
       "ore": "stickWood"
     },
     "S": {
-      "item": "thaumcraft:crystal_ordo"
+      "item": "thaumcraft:crystal_essence",
+      "data": 32767
     }
   },
   "result": {

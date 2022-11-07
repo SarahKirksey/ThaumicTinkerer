@@ -15,9 +15,12 @@
     "uvlock": true
   },
   "variants": {
-    "normal": [{}],
+    "normal": [
+      {}
+    ],
     "inventory": {
-      "model": "cube"
+      "model": "cube",
+      "transform": "forge:default-block"
     }
   }
 }

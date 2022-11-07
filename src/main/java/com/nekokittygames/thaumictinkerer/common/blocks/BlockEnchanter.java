@@ -2,26 +2,25 @@ package com.nekokittygames.thaumictinkerer.common.blocks;
 
 import com.nekokittygames.thaumictinkerer.ThaumicTinkerer;
 import com.nekokittygames.thaumictinkerer.common.libs.LibBlockNames;
-import com.nekokittygames.thaumictinkerer.common.multiblocks.Multiblock;
-import com.nekokittygames.thaumictinkerer.common.multiblocks.MultiblockManager;
 import com.nekokittygames.thaumictinkerer.common.tileentity.TileEntityEnchanter;
-import net.minecraft.block.material.MapColor;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.inventory.Container;
+import net.minecraft.inventory.IInventory;
+import net.minecraft.inventory.InventoryHelper;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.BlockRenderLayer;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
-import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.TextComponentString;
 import net.minecraft.world.World;
-import thaumcraft.api.casters.IInteractWithCaster;
 
-public class BlockEnchanter extends TTTileEntity<TileEntityEnchanter> implements IInteractWithCaster {
+public class BlockEnchanter extends TTTileEntity<TileEntityEnchanter> {
     public BlockEnchanter() {
-        super(LibBlockNames.OSMOTIC_ENCHANTER,Material.ROCK,true);
+        super(LibBlockNames.OSMOTIC_ENCHANTER, Material.ROCK, true);
     }
 
     @Override
@@ -40,40 +39,56 @@ public class BlockEnchanter extends TTTileEntity<TileEntityEnchanter> implements
         if (!(te instanceof TileEntityEnchanter)) {
             return false;
         }
-        player.openGui(ThaumicTinkerer.instance, 0, world, pos.getX(), pos.getY(), pos.getZ());
-        /*
-            if (MultiblockManager.checkMultiblock(worldIn,pos,new ResourceLocation("thaumictinkerer:osmotic_enchanter")))
-            {
-                playerIn.sendStatusMessage(new TextComponentString("Complete"),true);
-                try {
-                    MultiblockManager.outputMultiblock(worldIn,pos,new ResourceLocation("thaumictinkerer:osmotic_enchanter"),MultiblockManager.checkMultiblockFacing(worldIn,pos,new ResourceLocation("thaumictinkerer:osmotic_enchanter")));
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-            else
-            {
-                playerIn.sendStatusMessage(new TextComponentString("InComplete"),true);
-            }
-            */
+        if(((TileEntityEnchanter)te).checkLocation())
+            player.openGui(ThaumicTinkerer.instance, 0, world, pos.getX(), pos.getY(), pos.getZ());
+        else
+            player.sendStatusMessage(new TextComponentString("§5§o" + ThaumicTinkerer.proxy.localize("ttmisc.enchanter.incomplete")), true);
         return super.onBlockActivated(world, pos, state, player, hand, facing, hitX, hitY, hitZ);
     }
 
     @Override
-    public boolean onCasterRightClick(World world, ItemStack itemStack, EntityPlayer entityPlayer, BlockPos pos, EnumFacing enumFacing, EnumHand enumHand) {
-        if (MultiblockManager.checkMultiblock(world,pos,new ResourceLocation("thaumictinkerer:osmotic_enchanter")))
-        {
-            entityPlayer.sendStatusMessage(new TextComponentString("Complete"),true);
-            try {
-                MultiblockManager.outputMultiblock(world,pos,new ResourceLocation("thaumictinkerer:osmotic_enchanter"),MultiblockManager.checkMultiblockFacing(world,pos,new ResourceLocation("thaumictinkerer:osmotic_enchanter")));
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-        else
-        {
-            entityPlayer.sendStatusMessage(new TextComponentString("InComplete"),true);
-        }
+    public BlockRenderLayer getBlockLayer() {
+        return BlockRenderLayer.TRANSLUCENT;
+    }
+
+    @Override
+    public boolean isTranslucent(IBlockState state) {
+        return true;
+    }
+
+    @Override
+    public boolean isOpaqueCube(IBlockState state) {
         return false;
+    }
+
+    @Override
+    public boolean isFullBlock(IBlockState state) {
+        return false;
+    }
+
+    @Override
+    public void breakBlock(World worldIn, BlockPos pos, IBlockState state) {
+        TileEntity tileentity = worldIn.getTileEntity(pos);
+        if (tileentity instanceof IInventory) {
+            InventoryHelper.dropInventoryItems(worldIn, pos, (IInventory)tileentity);
+            worldIn.updateComparatorOutputLevel(pos, this);
+        }
+        super.breakBlock(worldIn, pos, state);
+    }
+    @Override
+    public boolean hasComparatorInputOverride(IBlockState state)
+    {
+        return true;
+    }
+
+    @Override
+    public int getComparatorInputOverride(IBlockState blockState, World worldIn, BlockPos pos)
+    {
+        TileEntity tileentity = worldIn.getTileEntity(pos);
+        if (tileentity instanceof TileEntityEnchanter) {
+            TileEntityEnchanter tie= (TileEntityEnchanter) tileentity;
+            return tie.getInventory().getStackInSlot(0)== ItemStack.EMPTY?0:16;
+        }
+        return 0;
     }
 }

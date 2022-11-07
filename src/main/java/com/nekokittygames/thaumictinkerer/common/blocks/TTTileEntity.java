@@ -1,7 +1,6 @@
 package com.nekokittygames.thaumictinkerer.common.blocks;
 
 import com.nekokittygames.thaumictinkerer.common.tileentity.TileEntityThaumicTinkerer;
-
 import net.minecraft.block.Block;
 import net.minecraft.block.material.MapColor;
 import net.minecraft.block.material.Material;
@@ -17,7 +16,7 @@ import net.minecraft.world.World;
 import javax.annotation.Nullable;
 import java.util.Random;
 
-public abstract class TTTileEntity<TE extends TileEntity> extends TTBlock  {
+public abstract class TTTileEntity<T extends TileEntity> extends TTBlock {
 
     /**
      * Should the {@link TileEntity} be preserved until after {@link #getDrops} has been called?
@@ -26,7 +25,7 @@ public abstract class TTTileEntity<TE extends TileEntity> extends TTBlock  {
 
     public TTTileEntity(String name, Material blockMaterialIn, MapColor blockMapColorIn, final boolean preserveTileEntity) {
         super(name, blockMaterialIn, blockMapColorIn);
-
+        this.setTickRandomly(false);
         this.preserveTileEntity = preserveTileEntity;
     }
 
@@ -53,14 +52,16 @@ public abstract class TTTileEntity<TE extends TileEntity> extends TTBlock  {
      */
     @SuppressWarnings("unchecked")
     @Nullable
-    protected TE getTileEntity(final IBlockAccess world, final BlockPos pos) {
-        return (TE) world.getTileEntity(pos);
+    protected T getTileEntity(final IBlockAccess world, final BlockPos pos) {
+        return (T) world.getTileEntity(pos);
     }
 
     @Override
     public boolean removedByPlayer(final IBlockState state, final World world, final BlockPos pos, final EntityPlayer player, final boolean willHarvest) {
         // If it will harvest, delay deletion of the block until after getDrops
-        return preserveTileEntity && willHarvest || super.removedByPlayer(state, world, pos, player, false);
+        if(preserveTileEntity && willHarvest && !player.capabilities.isCreativeMode)
+            return true;
+        return super.removedByPlayer(state, world, pos, player, willHarvest);
     }
 
     @Override
@@ -68,7 +69,9 @@ public abstract class TTTileEntity<TE extends TileEntity> extends TTBlock  {
         super.harvestBlock(world, player, pos, state, te, stack);
 
         if (preserveTileEntity) {
+            this.onBlockHarvested(world,pos,state,player);
             world.setBlockToAir(pos);
+            world.removeTileEntity(pos);
         }
     }
 
@@ -76,14 +79,16 @@ public abstract class TTTileEntity<TE extends TileEntity> extends TTBlock  {
     public boolean eventReceived(IBlockState state, World worldIn, BlockPos pos, int id, int param) {
         super.eventReceived(state, worldIn, pos, id, param);
         TileEntity tileentity = worldIn.getTileEntity(pos);
-        return tileentity == null ? false : tileentity.receiveClientEvent(id, param);
+        return tileentity != null && tileentity.receiveClientEvent(id, param);
     }
 
+
     public void updateTick(World world, BlockPos pos, IBlockState state, Random random) {
+        super.updateTick(world, pos, state, random);
         if (!world.isRemote) {
             TileEntity tile = world.getTileEntity(pos);
             if (tile instanceof TileEntityThaumicTinkerer) {
-                TileEntityThaumicTinkerer base = (TileEntityThaumicTinkerer)tile;
+                TileEntityThaumicTinkerer base = (TileEntityThaumicTinkerer) tile;
                 if (base.respondsToPulses()) {
                     base.activateOnPulse();
                 }
@@ -99,28 +104,27 @@ public abstract class TTTileEntity<TE extends TileEntity> extends TTBlock  {
 
     @Override
     public void neighborChanged(IBlockState state, World worldIn, BlockPos pos, Block blockIn, BlockPos fromPos) {
-        customNeighborsChanged(worldIn,pos);
+        customNeighborsChanged(worldIn, pos);
     }
 
     @Override
     public void onNeighborChange(IBlockAccess world, BlockPos pos, BlockPos neighbor) {
         super.onNeighborChange(world, pos, neighbor);
-        if(world instanceof World)
-            customNeighborsChanged((World) world,pos);
+        if (world instanceof World)
+            customNeighborsChanged((World) world, pos);
     }
 
     public void updateRedstone(World world, BlockPos pos) {
         if (!world.isRemote) {
             TileEntity tile = world.getTileEntity(pos);
             if (tile instanceof TileEntityThaumicTinkerer) {
-                TileEntityThaumicTinkerer base = (TileEntityThaumicTinkerer)tile;
+                TileEntityThaumicTinkerer base = (TileEntityThaumicTinkerer) tile;
                 boolean powered = world.isBlockIndirectlyGettingPowered(pos) > 0;
                 boolean wasPowered = base.getRedstonePowered();
                 if (powered && !wasPowered) {
                     if (base.respondsToPulses()) {
-                        world.scheduleUpdate(pos, this, this.tickRate(world));
+                        world.scheduleUpdate(pos, this, 4);
                     }
-
                     base.setRedstonePowered(true);
                 } else if (!powered && wasPowered) {
                     base.setRedstonePowered(false);
@@ -133,7 +137,7 @@ public abstract class TTTileEntity<TE extends TileEntity> extends TTBlock  {
     @Override
     public void onBlockAdded(World worldIn, BlockPos pos, IBlockState state) {
         super.onBlockAdded(worldIn, pos, state);
-        this.updateRedstone(worldIn,pos);
+        this.updateRedstone(worldIn, pos);
     }
 
     @Override

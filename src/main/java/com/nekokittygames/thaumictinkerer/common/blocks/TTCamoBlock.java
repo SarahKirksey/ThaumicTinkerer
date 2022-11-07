@@ -1,5 +1,6 @@
 package com.nekokittygames.thaumictinkerer.common.blocks;
 
+import com.nekokittygames.thaumictinkerer.ThaumicTinkerer;
 import com.nekokittygames.thaumictinkerer.common.tileentity.TileEntityCamoflage;
 import net.minecraft.block.material.MapColor;
 import net.minecraft.block.material.Material;
@@ -13,7 +14,7 @@ import net.minecraft.util.EnumHand;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.IBlockAccess;
 
-public abstract class TTCamoBlock< T extends TileEntityCamoflage> extends TTTileEntity<T> {
+public abstract class TTCamoBlock<T extends TileEntityCamoflage> extends TTTileEntity<T> {
 
 
     public TTCamoBlock(String name, Material blockMaterialIn, MapColor blockMapColorIn, boolean preserveTileEntity) {
@@ -21,20 +22,38 @@ public abstract class TTCamoBlock< T extends TileEntityCamoflage> extends TTTile
     }
 
 
-    @Override
-    public IBlockState getActualState(IBlockState state, IBlockAccess worldIn, BlockPos pos) {
-        TileEntity te=worldIn.getTileEntity(pos);
-        if(te instanceof TileEntityCamoflage)
-        {
-            TileEntityCamoflage camo= (TileEntityCamoflage) te;
-            if(camo.getBlockCopy()!=null)
-                return camo.getBlockCopy();
-        }
-        return super.getActualState(state,worldIn,pos);
-    }
-
     public TTCamoBlock(String name, Material materialIn, boolean preserveTileEntity) {
         super(name, materialIn, preserveTileEntity);
+    }
+
+    protected static boolean camoflageFromHand(EntityPlayer playerIn, EnumHand hand, TileEntity te) {
+        if (te instanceof TileEntityCamoflage) {
+            TileEntityCamoflage camo = (TileEntityCamoflage) te;
+            ItemStack currentStack = playerIn.getHeldItem(hand);
+            if (currentStack != ItemStack.EMPTY && currentStack.getItem() instanceof ItemBlock) {
+                    ItemBlock itemBlock = (ItemBlock) currentStack.getItem();
+                    camo.setBlockCopy(itemBlock.getBlock().getStateFromMeta(itemBlock.getMetadata(currentStack)));
+                    camo.sendUpdates();
+                    return true;
+                }
+            if(currentStack==ItemStack.EMPTY && playerIn.isSneaking())
+            {
+                camo.clearBlockCopy();
+                camo.sendUpdates();
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public IBlockState getActualState(IBlockState state, IBlockAccess worldIn, BlockPos pos) {
+        TileEntity te = worldIn.getTileEntity(pos);
+        if (te instanceof TileEntityCamoflage) {
+            TileEntityCamoflage camo = (TileEntityCamoflage) te;
+            if (camo.getBlockCopy() != null)
+                return camo.getBlockCopy();
+        }
+        return super.getActualState(state, worldIn, pos);
     }
 
     @Override
@@ -52,32 +71,19 @@ public abstract class TTCamoBlock< T extends TileEntityCamoflage> extends TTTile
         return false;
     }
 
-
     @Override
     public int getLightValue(IBlockState state, IBlockAccess world, BlockPos pos) {
-        TileEntity te=world.getTileEntity(pos);
-        if(te instanceof TileEntityCamoflage) {
+        TileEntity te = world.getTileEntity(pos);
+        if (te instanceof TileEntityCamoflage) {
             TileEntityCamoflage camo = (TileEntityCamoflage) te;
             if (camo.getBlockCopy() != null)
                 return camo.getBlockCopy().getLightValue();
         }
-        return super.getLightValue(state,world,pos);
+        return super.getLightValue(state, world, pos);
     }
 
-    public static boolean camoflageFromHand(EntityPlayer playerIn, EnumHand hand, TileEntity te) {
-        if (te != null && te instanceof TileEntityCamoflage) {
-            TileEntityCamoflage camo = (TileEntityCamoflage) te;
-            boolean doChange = true;
-            ItemStack currentStack = playerIn.getHeldItem(hand);
-            if (currentStack != ItemStack.EMPTY) {
-                if (currentStack.getItem() instanceof ItemBlock) {
-                    ItemBlock itemBlock = (ItemBlock) currentStack.getItem();
-                    camo.setBlockCopy(itemBlock.getBlock().getStateFromMeta(itemBlock.getMetadata(currentStack)));
-                    camo.sendUpdates();
-                    return true;
-                }
-            }
-        }
-        return false;
+    @Override
+    public int getMetaFromState(IBlockState state) {
+        return 0;
     }
 }

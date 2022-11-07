@@ -1,6 +1,5 @@
 package com.nekokittygames.thaumictinkerer.common.items;
 
-import com.nekokittygames.thaumictinkerer.common.items.baubles.ItemCleaningTalisman;
 import com.nekokittygames.thaumictinkerer.common.libs.LibMisc;
 import net.minecraft.item.Item;
 import net.minecraftforge.event.RegistryEvent;
@@ -12,23 +11,26 @@ import net.minecraftforge.registries.IForgeRegistry;
 import java.util.HashSet;
 import java.util.Set;
 
-import static com.nekokittygames.thaumictinkerer.common.utils.MiscUtils.Null;
+import static com.nekokittygames.thaumictinkerer.common.utils.MiscUtils.nullz;
 
 @SuppressWarnings("WeakerAccess")
 @GameRegistry.ObjectHolder(LibMisc.MOD_ID)
 public class ModItems {
 
-    public static final ItemShareBook share_book=Null();
-    public static final ItemCleaningTalisman cleaning_talisman=Null();
-    public static final ItemBlackQuartz black_quartz=Null();
-    public static final ItemConnector connector=Null();
-    public static final ItemSoulMould soul_mould=Null();
-    public static final ItemEnergeticNitor energetic_nitor = Null();
-    public static final ItemFormRevealer form_revealer=Null();
+    public static final ItemShareBook share_book = nullz();
+    public static final ItemBlackQuartz black_quartz = nullz();
+    public static final ItemConnector connector = nullz();
+    public static final ItemSoulMould soul_mould = nullz();
+    public static final ItemEnergeticNitor energetic_nitor = nullz();
+    public static final ItemSpellbindingCloth spellbinding_cloth=nullz();
+    public static final ItemBloodSword blood_sword=nullz();
+    public static final ItemMobAspect mob_aspect=nullz();
+    //public static final ItemFormRevealer form_revealer = nullz();
 
     @Mod.EventBusSubscriber(modid = LibMisc.MOD_ID)
     public static class RegistrationHandler {
         public static final Set<Item> ITEMS = new HashSet<>();
+
         /**
          * Register this mod's {@link Item}s.
          *
@@ -37,13 +39,15 @@ public class ModItems {
         @SubscribeEvent
         public static void registerItems(final RegistryEvent.Register<Item> event) {
             final Item[] items = {
-              new ItemShareBook(),
-                    new ItemCleaningTalisman(),
+                    new ItemShareBook(),
                     new ItemBlackQuartz(),
                     new ItemConnector(),
                     new ItemSoulMould(),
                     new ItemEnergeticNitor(),
-                    new ItemFormRevealer()
+                    new ItemSpellbindingCloth(),
+                    new ItemBloodSword(),
+                    new ItemMobAspect()
+                   // new ItemFormRevealer()
             };
             final IForgeRegistry<Item> registry = event.getRegistry();
 
@@ -51,6 +55,7 @@ public class ModItems {
                 registry.register(item);
                 ITEMS.add(item);
             }
+
 
         }
     }

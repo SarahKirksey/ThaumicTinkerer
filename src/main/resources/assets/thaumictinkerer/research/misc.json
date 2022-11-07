@@ -1,18 +1,20 @@
 {
-  "entries" :[
+  "entries": [
     {
-      "key": "SHARE_TOME",
+      "key": "TT_SHARE_TOME",
       "name": "thaumictinkerer.research.share_tome.title",
       "icons": [
-        "thaumictinkerer:textures/items/share_book.png"
+        "thaumictinkerer:share_book"
       ],
       "category": "THAUMIC_TINKERER",
-      "parents": ["FIRSTSTEPS"],
-      "siblings": [],
-      "meta": [
-        "ROUND",
-        "AUTOUNLOCK"
+      "parents": [
+        "FIRSTSTEPS"
       ],
+      "meta": [
+        "ROUND"
+      ],
+      "siblings": [],
+
       "location": [
         0,
         -1
@@ -23,22 +25,25 @@
           "recipes": [
             "thaumictinkerer:share_book"
           ],
-          "required_craft":["thaumcraft:arcane_workbench"]
+          "required_craft": [
+            "thaumcraft:arcane_workbench"
+          ]
         }
       ]
     },
     {
-      "key": "BLACK_QUARTZ",
+      "key": "TT_BLACK_QUARTZ",
       "name": "thaumictinkerer.research.black_quartz.title",
       "icons": [
-        "thaumictinkerer:textures/items/black_quartz.png"
+        "thaumictinkerer:black_quartz"
       ],
       "category": "THAUMIC_TINKERER",
-      "parents": ["FIRSTSTEPS"],
+      "parents": [
+        "FIRSTSTEPS"
+      ],
       "siblings": [],
       "meta": [
-        "ROUND",
-        "AUTOUNLOCK"
+        "ROUND"
       ],
       "location": [
         2,
@@ -47,36 +52,135 @@
       "stages": [
         {
           "text": "thaumictinkerer.research.black_quartz.0",
+          "required_item": [
+            "minecraft:quartz"
+          ]
+        },
+        {
+          "text": "thaumictinkerer.research.black_quartz.1",
           "recipes": [
-            "thaumictinkerer:black_quartz"
-          ],
-          "required_item":["minecraft:quartz"]
+            "thaumictinkerer:black_quartz",
+            "thaumictinkerer:black_quartz_block"
+          ]
         }
       ]
     },
     {
-      "key": "ESSENTIA_FUNNEL",
-      "name": "thaumictinkerer.research.funnel.title",
+      "key": "TT_ENERGETIC_NITOR",
+      "name": "thaumictinkerer.research.energetic_nitor.title",
       "icons": [
-        "thaumictinkerer:textures/blocks/funnel/funnel_top.png"
+        "thaumictinkerer:energetic_nitor"
       ],
       "category": "THAUMIC_TINKERER",
-      "parents": ["WARDEDJARS"],
+      "parents": [
+        "FIRSTSTEPS"
+      ],
       "siblings": [],
       "meta": [
+        "ROUND"
       ],
       "location": [
-        3,
-        1
+        4,
+        5
       ],
       "stages": [
         {
-          "text": "thaumictinkerer.research.funnel.0",
+          "text": "thaumictinkerer.research.energetic_nitor.0",
+          "required_item": [
+            "thaumcraft:nitor_yellow"
+          ]
+        },
+        {
+          "text": "thaumictinkerer.research.energetic_nitor.1",
           "recipes": [
-            "thaumictinkerer:funnel"
+            "thaumictinkerer:energetic_nitor"
           ]
         }
       ]
+    },
+    {
+      "key": "TT_PRISMARINE",
+      "name": "thaumictinkerer.research.prismarine.title",
+      "icons": [
+        "minecraft:prismarine_shard"
+      ],
+      "category": "THAUMIC_TINKERER",
+      "parents": [
+        "FIRSTSTEPS"
+      ],
+      "siblings": [],
+      "meta": [
+        "ROUND"
+      ],
+      "location": [
+        5,
+        4
+      ],
+      "stages": [
+        {
+          "text": "thaumictinkerer.research.prismarine.0",
+          "recipes": [
+            "thaumictinkerer:prismarine"
+          ],
+          "required_item": [
+            "minecraft:glass_pane"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "TT_SPELLBINDING_CLOTH",
+      "name": "thaumictinkerer.research.spellbinding_cloth.title",
+      "icons": [
+        "thaumictinkerer:spellbinding_cloth"
+      ],
+      "category": "THAUMIC_TINKERER",
+      "parents": [
+        "UNLOCKINFUSION"
+      ],
+      "siblings": [],
+      "meta": [
+        "ROUND"
+      ],
+      "location": [
+        5,
+        6
+      ],
+      "stages": [
+        {
+          "text": "thaumictinkerer.research.spellbinding_cloth.0",
+          "required_item": [
+            "thaumcraft:fabric"
+          ]
+        },
+        {
+          "text": "thaumictinkerer.research.spellbinding_cloth.1",
+          "recipes": [
+            "thaumictinkerer:spellbinding_cloth"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "TT_DISSIMULATION",
+      "name": "thaumictinkerer.research.dissimulation.title",
+      "icons": [ "thaumictinkerer:dissimulation" ],
+      "category": "THAUMIC_TINKERER",
+      "parents": [ "FIRSTSTEPS" ],
+      "meta": [ "ROUND" ],
+      "location": [ 1,-1 ],
+      "stages": [
+        {
+          "text": "thaumictinkerer.research.dissimulation.0",
+          "required_item":["minecraft:prismarine_shard;30"]
+        },
+        {
+          "text": "thaumictinkerer.research.dissimulation.1",
+          "recipes": ["thaumictinkerer:dissimulation"]
+
+        }
+      ]
     }
-    ]
+
+  ]
 }

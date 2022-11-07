@@ -1,8 +1,8 @@
 package com.nekokittygames.thaumictinkerer.common.blocks;
 
+import com.nekokittygames.thaumictinkerer.ThaumicTinkerer;
 import com.nekokittygames.thaumictinkerer.client.libs.LibClientMisc;
 import com.nekokittygames.thaumictinkerer.common.libs.LibMisc;
-import com.nekokittygames.thaumictinkerer.common.misc.CreativeTabThaumicTinkerer;
 import net.minecraft.block.Block;
 import net.minecraft.block.material.MapColor;
 import net.minecraft.block.material.Material;
@@ -20,12 +20,19 @@ import java.util.Objects;
 
 public class TTBlock extends Block {
     private String baseName;
-    public TTBlock(String name,Material blockMaterialIn, MapColor blockMapColorIn) {
+
+    public TTBlock(String name, Material blockMaterialIn, MapColor blockMapColorIn) {
         super(blockMaterialIn, blockMapColorIn);
-        baseName=name;
+        baseName = name;
         setBlockName(this, name);
-        if(isInCreativeTab())
-            setCreativeTab(CreativeTabThaumicTinkerer.getInstance());
+        setHardness(2);
+        if (isInCreativeTab())
+            setCreativeTab(ThaumicTinkerer.getTab());
+    }
+
+    public TTBlock(String name, Material materialIn) {
+        this(name, materialIn, materialIn.getMaterialMapColor());
+
     }
 
     private static void setBlockName(final TTBlock block, final String blockName) {
@@ -33,12 +40,6 @@ public class TTBlock extends Block {
         final ResourceLocation registryName = Objects.requireNonNull(block.getRegistryName());
         block.setUnlocalizedName(registryName.toString());
     }
-
-    public TTBlock(String name,Material materialIn) {
-        this(name,materialIn,materialIn.getMaterialMapColor());
-
-    }
-
 
     protected boolean isInCreativeTab() {
         return true;
@@ -49,13 +50,12 @@ public class TTBlock extends Block {
     @SideOnly(Side.CLIENT)
     public void addInformation(ItemStack stack, @Nullable World worldIn, List<String> tooltip, ITooltipFlag flagIn) {
         super.addInformation(stack, worldIn, tooltip, flagIn);
-        int i=0;
-        String name="item."+ LibClientMisc.RESOURCE_PREFIX+baseName+"."+i;
-        while(I18n.hasKey(name))
-        {
+        int i = 0;
+        String name = "item." + LibClientMisc.RESOURCE_PREFIX + baseName + "." + i;
+        while (I18n.hasKey(name)) {
             tooltip.add(I18n.format(name));
             i++;
-            name="item."+ LibClientMisc.RESOURCE_PREFIX+baseName+"."+i;
+            name = "item." + LibClientMisc.RESOURCE_PREFIX + baseName + "." + i;
         }
 
     }

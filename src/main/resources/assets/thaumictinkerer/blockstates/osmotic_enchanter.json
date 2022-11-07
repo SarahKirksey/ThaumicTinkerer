@@ -15,9 +15,12 @@
     "uvlock": true
   },
   "variants": {
-    "normal": [{}],
+    "normal": [
+      {}
+    ],
     "inventory": {
-      "model": "thaumictinkerer:osmotic_enchanter"
+      "model": "thaumictinkerer:osmotic_enchanter",
+      "transform": "forge:default-block"
     }
   }
 }

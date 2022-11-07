@@ -22,25 +22,26 @@ import net.minecraftforge.registries.IForgeRegistry;
 import java.util.HashSet;
 import java.util.Set;
 
-import static com.nekokittygames.thaumictinkerer.common.utils.MiscUtils.Null;
+import static com.nekokittygames.thaumictinkerer.common.utils.MiscUtils.nullz;
 
 @SuppressWarnings("WeakerAccess")
 @GameRegistry.ObjectHolder(LibMisc.MOD_ID)
 public class ModBlocks {
 
-    public static final BlockFunnel funnel=Null();
-    public static final BlockDissimulation dissimulation=Null();
-    public static final BlockTransvectorInterface transvector_interface=Null();
-    public static final BlockTransvectorDislocator transvector_dislocator=Null();
-    public static final BlockRepairer repairer=Null();
-    public static final BlockItemMagnet magnet=Null();
-    public static final BlockMobMagnet mob_magnet=Null();
-    public static final BlockNitorVapor nitor_vapor = Null();
-    public static final BlockExample example=Null();
-    public static final BlockEnchanter osmotic_enchanter=Null();
-    public static final BlockEnchantmentPillar enchantment_pillar=Null();
-    public static final BlockBlackQuartz black_quartz_block=Null();
-    public static final BlockAnimationTablet animation_tablet=Null();
+    public static final BlockFunnel funnel = nullz();
+    public static final BlockDissimulation dissimulation = nullz();
+    public static final BlockTransvectorInterface transvector_interface = nullz();
+    public static final BlockTransvectorDislocator transvector_dislocator = nullz();
+    public static final BlockRepairer repairer = nullz();
+    public static final BlockItemMagnet magnet = nullz();
+    public static final BlockMobMagnet mob_magnet = nullz();
+    public static final BlockNitorVapor nitor_vapor = nullz();
+    public static final BlockExample example = nullz();
+    public static final BlockEnchanter osmotic_enchanter = nullz();
+    public static final BlockEnchantmentPillar enchantment_pillar = nullz();
+    public static final BlockBlackQuartz black_quartz_block = nullz();
+    public static final BlockAnimationTablet animation_tablet = nullz();
+    public static final BlockDummyNitor dummy_nitor=nullz();
 
     @Mod.EventBusSubscriber(modid = LibMisc.MOD_ID)
     public static class RegistrationHandler {
@@ -68,9 +69,12 @@ public class ModBlocks {
                     new BlockEnchanter(),
                     new BlockEnchantmentPillar(),
                     new BlockBlackQuartz(),
-                    new BlockAnimationTablet()
+                    new BlockAnimationTablet(),
+                    new BlockDummyNitor(),
             };
-            registry.registerAll(blocks);
+            for(Block block:blocks) {
+                registry.register(block);
+            }
             registerTileEntities();
         }
 
@@ -82,7 +86,7 @@ public class ModBlocks {
         @SubscribeEvent
         public static void registerItemBlocks(final RegistryEvent.Register<Item> event) {
             final ItemBlock[] items = {
-                new ItemBlock(funnel),
+                    new ItemBlock(funnel),
                     new ItemBlock(dissimulation),
                     new ItemBlock(transvector_interface),
                     new ItemBlock(transvector_dislocator),
@@ -92,8 +96,10 @@ public class ModBlocks {
                     //new ItemBlock(nitor_vapor),
                     //new ItemBlock(example),
                     new ItemBlock(osmotic_enchanter),
+                    new ItemBlock(enchantment_pillar),
                     new ItemBlock(animation_tablet),
-                    new ItemBlock(black_quartz_block)
+                    new ItemBlock(black_quartz_block),
+                    new ItemBlock(dummy_nitor),
             };
             final IForgeRegistry<Item> registry = event.getRegistry();
 
@@ -104,22 +110,23 @@ public class ModBlocks {
                 ITEM_BLOCKS.add(item);
             }
         }
+
         private static void registerTileEntities() {
             registerTileEntity(TileEntityFunnel.class, LibBlockNames.FUNNEL);
-            registerTileEntity(TileEntityDissimulation.class,LibBlockNames.DISSIMULATION);
-            registerTileEntity(TileEntityTransvectorInterface.class,LibBlockNames.TRANSVECTOR_INTERFACE);
-            registerTileEntity(TileEntityTransvectorDislocator.class,LibBlockNames.TRANSVECTOR_DISLOCATOR);
-            registerTileEntity(TileEntityRepairer.class,LibBlockNames.REPAIRER);
-            registerTileEntity(TileEntityItemMagnet.class,LibBlockNames.MAGNET);
-            registerTileEntity(TileEntityMobMagnet.class,LibBlockNames.MOB_MAGNET);
-            registerTileEntity(TileEntityExample.class,LibBlockNames.EXAMPLE);
-            registerTileEntity(TileEntityEnchanter.class,LibBlockNames.OSMOTIC_ENCHANTER);
-            registerTileEntity(TileEntityEnchantmentPillar.class,LibBlockNames.ENCHANTMENT_PILLAR);
-            registerTileEntity(TileEntityAnimationTablet.class,LibBlockNames.ANIMATION_TABLET);
+            registerTileEntity(TileEntityDissimulation.class, LibBlockNames.DISSIMULATION);
+            registerTileEntity(TileEntityTransvectorInterface.class, LibBlockNames.TRANSVECTOR_INTERFACE);
+            registerTileEntity(TileEntityTransvectorDislocator.class, LibBlockNames.TRANSVECTOR_DISLOCATOR);
+            registerTileEntity(TileEntityRepairer.class, LibBlockNames.REPAIRER);
+            registerTileEntity(TileEntityItemMagnet.class, LibBlockNames.MAGNET);
+            registerTileEntity(TileEntityMobMagnet.class, LibBlockNames.MOB_MAGNET);
+            registerTileEntity(TileEntityExample.class, LibBlockNames.EXAMPLE);
+            registerTileEntity(TileEntityEnchanter.class, LibBlockNames.OSMOTIC_ENCHANTER);
+            registerTileEntity(TileEntityEnchantmentPillar.class, LibBlockNames.ENCHANTMENT_PILLAR);
+            registerTileEntity(TileEntityAnimationTablet.class, LibBlockNames.ANIMATION_TABLET);
         }
 
         private static void registerTileEntity(Class<? extends TileEntity> clazz, String name) {
-            GameRegistry.registerTileEntity(clazz, new ResourceLocation("thaumictinkerer",name).toString());
+            GameRegistry.registerTileEntity(clazz, new ResourceLocation("thaumictinkerer", name).toString());
         }
     }
 }

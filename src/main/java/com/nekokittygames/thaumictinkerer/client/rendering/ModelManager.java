@@ -1,12 +1,18 @@
+/*
+ * Copyright (c) 2020. Katrina Knight
+ */
+
 package com.nekokittygames.thaumictinkerer.client.rendering;
 
-import com.nekokittygames.thaumictinkerer.client.libs.LibClientMisc;
+import com.nekokittygames.thaumictinkerer.ThaumicTinkerer;
 import com.nekokittygames.thaumictinkerer.common.blocks.ModBlocks;
+import com.nekokittygames.thaumictinkerer.common.helper.IItemVariants;
 import com.nekokittygames.thaumictinkerer.common.items.ModItems;
 import com.nekokittygames.thaumictinkerer.common.libs.LibMisc;
 import com.nekokittygames.thaumictinkerer.common.utils.IVariant;
 import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.ItemMeshDefinition;
 import net.minecraft.client.renderer.block.model.ModelBakery;
 import net.minecraft.client.renderer.block.model.ModelResourceLocation;
@@ -22,18 +28,46 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.relauncher.Side;
 
-import java.util.HashSet;
-import java.util.Objects;
-import java.util.Set;
+import javax.annotation.Nonnull;
+import java.io.IOException;
+import java.util.*;
 
+/**
+ * Model manager helper class for loading models
+ */
 @Mod.EventBusSubscriber(value = Side.CLIENT, modid = LibMisc.MOD_ID)
 public class ModelManager {
-    public static final ModelManager INSTANCE = new ModelManager();
+    private static final ModelManager INSTANCE = new ModelManager();
 
-    private static final String FLUID_MODEL_PATH = LibClientMisc.RESOURCE_PREFIX + "fluid";
+    private Map<Item, Map<String,ModelResourceLocation>> Item_Variants_baked=new HashMap<>();
+    /**
+     * default mapper for properties to string
+     */
+    private final StateMapperBase propertyStringMapper = new StateMapperBase() {
+        @Override
+        protected ModelResourceLocation getModelResourceLocation(@Nonnull final IBlockState state) {
+            return new ModelResourceLocation("minecraft:air");
+        }
+    };
+    /**
+     * The {@link Item}s that have had models registered so far.
+     */
+    private final Set<Item> itemsRegistered = new HashSet<>();
 
+    /**
+     * Empty constructor
+     */
     private ModelManager() {
 
+    }
+
+    /**
+     * Gets the ModelManager instance
+     *
+     * @return the current instance
+     */
+    public static ModelManager getInstance() {
+        return INSTANCE;
     }
 
     /**
@@ -48,6 +82,9 @@ public class ModelManager {
         INSTANCE.registerItemModels();
     }
 
+    /**
+     * registers the needed block models
+     */
     private void registerBlockModels() {
 
         //registerBlockItemModel(ModBlocks.funnel.getDefaultState().withProperty(BlockFunnel.JAR, false));
@@ -55,41 +92,46 @@ public class ModelManager {
         ModBlocks.RegistrationHandler.ITEM_BLOCKS.stream().filter(item -> !itemsRegistered.contains(item)).forEach(this::registerItemModel);
 
     }
-    private final StateMapperBase propertyStringMapper = new StateMapperBase() {
-        @Override
-        protected ModelResourceLocation getModelResourceLocation(final IBlockState state) {
-            return new ModelResourceLocation("minecraft:air");
-        }
-    };
 
+    /**
+     * register a paticular block
+     *
+     * @param state state of the block
+     */
     private void registerBlockItemModel(IBlockState state) {
         final Block block = state.getBlock();
         final Item item = Item.getItemFromBlock(block);
 
         if (item != Items.AIR) {
             final ResourceLocation registryName = Objects.requireNonNull(block.getRegistryName());
-            ModelResourceLocation mrl=new ModelResourceLocation(registryName, propertyStringMapper.getPropertyString(state.getProperties()));
+            ModelResourceLocation mrl = new ModelResourceLocation(registryName, propertyStringMapper.getPropertyString(state.getProperties()));
             registerItemModel(item, mrl);
         }
     }
 
     /**
-     * The {@link Item}s that have had models registered so far.
+     * registers items
      */
-    private final Set<Item> itemsRegistered = new HashSet<>();
-
     private void registerItemModels() {
 
         ModItems.RegistrationHandler.ITEMS.stream().filter(item -> !itemsRegistered.contains(item)).forEach(this::registerItemModel);
     }
 
 
+    /**
+     * register item by variant
+     * @param item item object
+     * @param variantName name of the variant
+     * @param values varients
+     * @param <T> Type of varient
+     */
     private <T extends IVariant> void registerVariantItemModels(final Item item, final String variantName, final T[] values) {
         for (final T value : values) {
 
             registerItemModelForMeta(item, value.getMeta(), variantName + "=" + value.getName());
         }
     }
+
     /**
      * Register a single model for an {@link Item}.
      * <p>
@@ -125,7 +167,43 @@ public class ModelManager {
      */
     private void registerItemModel(final Item item, final ModelResourceLocation fullModelLocation) {
         ModelBakery.registerItemVariants(item, fullModelLocation); // Ensure the custom model is loaded and prevent the default model from being loaded
-        registerItemModel(item, stack -> fullModelLocation);
+        if(item instanceof IItemVariants)
+        {
+            for (String variant:((IItemVariants)item).GetVariants()) {
+                ResourceLocation loc=new ResourceLocation(LibMisc.MOD_ID,fullModelLocation.getResourcePath()+"/"+variant);
+                ModelResourceLocation mrl=new ModelResourceLocation(loc,fullModelLocation.getVariant());
+                try {
+                    ResourceLocation test=new ResourceLocation(LibMisc.MOD_ID,"models/item/"+loc.getResourcePath()+".json");
+                    if(Minecraft.getMinecraft().getResourceManager().getResource(test)==null) {
+                        ThaumicTinkerer.logger.info("Unable to find model file for item: "+item.toString()+" variant: "+variant);
+                        Item_Variants_baked.putIfAbsent(item,new HashMap<>());
+                        Item_Variants_baked.get(item).put(variant,fullModelLocation);
+                        continue;
+                    }
+
+                } catch (IOException e) {
+                    ThaumicTinkerer.logger.info("Unable to find model file for item: "+item.toString()+" variant: "+variant);
+                    Item_Variants_baked.putIfAbsent(item,new HashMap<>());
+                    Item_Variants_baked.get(item).put(variant,fullModelLocation);
+                    continue;
+                }
+                Item_Variants_baked.putIfAbsent(item,new HashMap<>());
+                Item_Variants_baked.get(item).put(variant,mrl);
+                ModelBakery.registerItemVariants(item, mrl);
+            }
+            registerItemModel(item, stack -> {
+                String var=((IItemVariants)item).GetVariant(stack);
+                if(Item_Variants_baked.getOrDefault(stack.getItem(),new HashMap<>()).containsKey(var))
+                    return Item_Variants_baked.getOrDefault(stack.getItem(),new HashMap<>()).get(var);
+                else {
+                    ThaumicTinkerer.logger.error("Variant "+var+" Has been added to item "+stack.getItem().toString()+"since loading. Variant list should  not change");
+                    return fullModelLocation;
+                }
+
+            });
+        }
+        else
+            registerItemModel(item, stack -> fullModelLocation);
     }
 
     /**
@@ -150,7 +228,7 @@ public class ModelManager {
      * @param variant  The variant
      */
     private void registerItemModelForMeta(final Item item, final int metadata, final String variant) {
-        registerItemModelForMeta(item, metadata, new ModelResourceLocation(item.getRegistryName(), variant));
+        registerItemModelForMeta(item, metadata, new ModelResourceLocation(Objects.requireNonNull(item.getRegistryName()), variant));
     }
 
     /**
